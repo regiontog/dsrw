@@ -1,5 +1,6 @@
 import bisect
 import http
+import ujson
 from collections import defaultdict
 
 enc = 'ascii'
@@ -25,7 +26,7 @@ class App:
     GET_METHODS = ('GET',)
     PUT_METHODS = ('PUT',)
     POST_METHODS = ('POST',)
-    HEADERS = [('Content-type', 'text/plain')]
+    HEADERS = [('Content-type', 'application/json')]
 
     def __init__(self):
         self.verbs = defaultdict(lambda: [])
@@ -46,11 +47,11 @@ class App:
             code, content = http.HTTPStatus.INTERNAL_SERVER_ERROR, ""
 
         start_response("{code.value} {code.phrase}".format(code=code), App.HEADERS)
-        return [content]
+        return [ujson.dumps(content)]
 
     # @profile
     def dispatch(self, verb, url):
-        routes = self.verbs[verb] # TODO: Normalize verb?
+        routes = self.verbs[verb]
         route_index = 0
         route_char_index = 0
         url_char_index = 0
