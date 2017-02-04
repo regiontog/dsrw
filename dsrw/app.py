@@ -1,10 +1,14 @@
 import bisect
+import logging
+
 import http
 import traceback
 from collections import defaultdict, namedtuple
 
 import ujson
-from helper import lazy
+from .helper import lazy
+
+logger = logging.getLogger(__name__)
 
 enc = 'ascii'
 wildcard = 0
@@ -44,13 +48,12 @@ class App:
             else:
                 code, content = App.NOT_FOUND
         except Exception:
-            print(traceback.format_exc())
+            logger.exception('Internal Server Error')
             code, content = App.INTERNAL_ERR
 
         start_response(f"{code.value} {code.phrase}", App.HEADERS)
         return content
 
-    @profile
     def dispatch(self, verb, url):
         routes = self.verbs[verb]
         route_index = 0

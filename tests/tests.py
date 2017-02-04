@@ -2,7 +2,7 @@ import random
 import string
 import unittest
 
-from app import App, enc
+from dsrw.app import App, enc
 
 
 def nop():
