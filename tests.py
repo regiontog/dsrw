@@ -66,6 +66,18 @@ class BasicTests(unittest.TestCase):
         self.assertEqual(url, b'/mime/\0')
         self.assertEqual(params, [b'param'])
 
+    def url_end_param_test(self):
+        app = App()
+
+        app.get('/test')(test_eq('/test'))
+        app.get('/test/:name')(lambda it: it != '/test/:name')
+
+        urls = ('/test', '/test/alan')
+        for url in urls:
+            handler, params = app.dispatch('GET', url)
+            self.assertIsNotNone(handler)
+            self.assertTrue(handler(url))
+
 
 if __name__ == '__main__':
     unittest.main()

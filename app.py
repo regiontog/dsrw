@@ -4,7 +4,7 @@ import traceback
 from collections import defaultdict, namedtuple
 
 import ujson
-from lazy import lazy
+from helper import lazy
 
 enc = 'ascii'
 wildcard = 0
@@ -50,6 +50,7 @@ class App:
         start_response(f"{code.value} {code.phrase}", App.HEADERS)
         return content
 
+    @profile
     def dispatch(self, verb, url):
         routes = self.verbs[verb]
         route_index = 0
@@ -59,8 +60,8 @@ class App:
         param_stack = []
         item = None
 
-        try:
-            while True:
+        while True:
+            try:
                 if url_bytes[url_char_index] == routes[route_index][0][route_char_index]:
                     route_char_index += 1
                     url_char_index += 1
@@ -81,14 +82,21 @@ class App:
                         url_char_index = pos
                 else:
                     return None, "Smaller than prev"
-        except IndexError:
-            if route_index < len(routes) and len(routes[route_index][0]) == route_char_index:
+            except IndexError:
                 if item is not None:
                     param_stack.append(item)
+                if route_index >= len(routes):
+                    return None, "IndexError"
 
-                return routes[route_index][1], (routes[route_index][2], param_stack)
-            else:
-                return None, "IndexError"
+                if len(url_bytes) == url_char_index:
+                    return routes[route_index][1], (routes[route_index][2], param_stack)
+                else:
+                    route_index += 1
+                    if len(param_stack) > 0:
+                        pos, _ = param_stack.pop()
+                        route_char_index = pos
+                        url_char_index = pos
+
 
     @staticmethod
     def parse_url(url):
@@ -170,5 +178,4 @@ class Request:
 
     @lazy
     def param(self):
-        values = map(lambda n: n[1].decode(App.CONTENT_ENC), self.path_param_vals)
-        return self.path_param_type(*values)
+        return self.path_param_type(*map(lambda n: n[1].decode(App.CONTENT_ENC), self.path_param_vals))
