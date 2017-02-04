@@ -50,7 +50,6 @@ class App:
         start_response(f"{code.value} {code.phrase}", App.HEADERS)
         return content
 
-    # @profile
     def dispatch(self, verb, url):
         routes = self.verbs[verb]
         route_index = 0
@@ -115,8 +114,11 @@ class App:
 
     def _route(self, verbs, url, handler):
         url, params = self.parse_url(url)
+        params = map(lambda n: n.decode(App.CONTENT_ENC), params)
+        params_type = namedtuple('PathParams', params)
+
         for verb in verbs:
-            bisect.insort(self.verbs[normalize_verb(verb)], (url, handler, params))
+            bisect.insort(self.verbs[normalize_verb(verb)], (url, handler, params_type))
 
     def route(self, verbs, url):
         def decorator(fn):
@@ -140,7 +142,7 @@ class Request:
 
     def __init__(self, env, path_params):
         self.env = env
-        self.path_param_names, self.path_param_vals = path_params
+        self.path_param_type, self.path_param_vals = path_params
 
     @lazy
     def body(self):
@@ -168,7 +170,5 @@ class Request:
 
     @lazy
     def param(self):
-        names = map(lambda n: n.decode(App.CONTENT_ENC), self.path_param_names)
-        values = map(lambda it: it[1], self.path_param_vals)
-        values = map(lambda n: n.decode(App.CONTENT_ENC), values)
-        return namedtuple('PathParams', names)(*values)
+        values = map(lambda n: n[1].decode(App.CONTENT_ENC), self.path_param_vals)
+        return self.path_param_type(*values)
