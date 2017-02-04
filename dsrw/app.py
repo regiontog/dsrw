@@ -104,28 +104,27 @@ class App:
     @staticmethod
     def parse_url(url):
         res = bytearray()
-        url = bytes(url, enc)
+        b_url = bytes(url, enc)
         params = []
-        l = len(url)
+        l = len(b_url)
         i = 0
         while i < l:
-            if url[i] == colon and url[i - 1] == slash:
-                params.append(bytearray())
+            if b_url[i] == colon and b_url[i - 1] == slash:
+                params.append("")
                 i += 1
-                while i < l and url[i] != slash:
-                    params[-1].append(url[i])
+                while i < l and b_url[i] != slash:
+                    params[-1] += url[i]
                     i += 1
 
                 res.append(wildcard)
             else:
-                res.append(url[i])
+                res.append(b_url[i])
                 i += 1
 
         return res, params
 
     def _route(self, verbs, url, handler):
         url, params = self.parse_url(url)
-        params = map(lambda n: n.decode(App.CONTENT_ENC), params)
         params_type = namedtuple('PathParams', params)
 
         for verb in verbs:

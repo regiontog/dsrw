@@ -60,11 +60,11 @@ class BasicTests(unittest.TestCase):
     def url_parse_test(self):
         url, params = App.parse_url('/:name/test/:id/hello')
         self.assertEqual(url, b'/\0/test/\0/hello')
-        self.assertEqual(params, [b'name', b'id'])
+        self.assertEqual(params, ['name', 'id'])
 
         url, params = App.parse_url('/mime/:param')
         self.assertEqual(url, b'/mime/\0')
-        self.assertEqual(params, [b'param'])
+        self.assertEqual(params, ['param'])
 
     def url_end_param_test(self):
         app = App()
