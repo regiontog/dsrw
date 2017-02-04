@@ -2,7 +2,7 @@ import random
 import string
 import unittest
 
-import dsrw
+from app import App, enc
 
 
 def nop():
@@ -29,7 +29,7 @@ def random_uri():
 
 class BasicTests(unittest.TestCase):
     def testOne(self):
-        app = dsrw.App()
+        app = App()
 
         num = 600
         for _ in range(num):
@@ -40,13 +40,13 @@ class BasicTests(unittest.TestCase):
         for _ in range(iters):
             i = random.randint(0, num - 1)
             url = app.verbs['GET'][i][0]
-            url = url.decode(dsrw.enc)
+            url = url.decode(enc)
             handler, params = app.dispatch('GET', url)
             self.assertIsNotNone(handler)
             self.assertTrue(handler(url))
 
     def testWildcard(self):
-        app = dsrw.App()
+        app = App()
 
         app.get('/*/ayy')(nop)
         app.get('/two/ye')(nop)
