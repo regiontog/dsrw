@@ -28,7 +28,7 @@ def random_uri():
 
 
 class BasicTests(unittest.TestCase):
-    def testOne(self):
+    def test_one(self):
         app = App()
 
         num = 600
@@ -45,17 +45,26 @@ class BasicTests(unittest.TestCase):
             self.assertIsNotNone(handler)
             self.assertTrue(handler(url))
 
-    def testWildcard(self):
+    def test_wildcard(self):
         app = App()
 
-        app.get('/*/ayy')(nop)
+        app.get('/:test/ayy')(nop)
         app.get('/two/ye')(nop)
-        app.get('/*/oscar')(nop)
+        app.get('/:name/oscar')(nop)
 
         urls = ('/3/ayy', '/car/ayy', '/car/oscar', '/two/ye')
         for url in urls:
             handler, params = app.dispatch('GET', url)
             self.assertIsNotNone(handler)
+
+    def url_parse_test(self):
+        url, params = App.parse_url('/:name/test/:id/hello')
+        self.assertEqual(url, b'/\0/test/\0/hello')
+        self.assertEqual(params, [b'name', b'id'])
+
+        url, params = App.parse_url('/mime/:param')
+        self.assertEqual(url, b'/mime/\0')
+        self.assertEqual(params, [b'param'])
 
 
 if __name__ == '__main__':
