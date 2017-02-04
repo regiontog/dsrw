@@ -36,7 +36,7 @@ class App:
 
     def __call__(self, env, start_response):
         try:
-            fn, path_params = self.dispatch(env['REQUEST_METHOD'], env['PATH_INFO'])
+            fn, path_params = self.dispatch(env['REQUEST_METHOD'], env['SCRIPT_NAME'] + env['PATH_INFO'])
 
             if fn is not None:
                 req = Request(env, path_params)
