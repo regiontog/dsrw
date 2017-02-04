@@ -78,6 +78,14 @@ class BasicTests(unittest.TestCase):
             self.assertIsNotNone(handler)
             self.assertTrue(handler(url))
 
+    def simple_test(self):
+        app = App()
+
+        app.get('/api/test')(test_eq('/api/test'))
+
+        handler, params = app.dispatch('GET', '/api')
+        self.assertIsNone(handler)
+
 
 if __name__ == '__main__':
     unittest.main()

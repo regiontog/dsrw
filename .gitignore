@@ -39,3 +39,8 @@ tmtagsHistory
 *.sublime-project
 *.sublime-workspace
 .bundle
+
+api.py
+build/**
+dist/**
+dsrw.egg-info/**
