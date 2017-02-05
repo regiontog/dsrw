@@ -52,6 +52,7 @@ class App:
 
     def dispatch(self, verb, url):
         routes = self.verbs[verb]
+        routes_len = len(routes)
         route_index = 0
         route_char_index = 0
         url_char_index = 0
@@ -80,10 +81,11 @@ class App:
                 else:
                     return None, "Smaller than current (but we've already looked through all smaller than current)"
             except IndexError:
+                if route_index >= routes_len:
+                    return None, "End of routes"
+
                 if item is not None:
                     param_stack.append(item)
-                if route_index >= len(routes):
-                    return None, "End of routes"
 
                 if len(routes[route_index][0]) == route_char_index:
                     return routes[route_index][1], (routes[route_index][2], param_stack)
