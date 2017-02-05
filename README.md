@@ -42,8 +42,6 @@ if __name__ == '__main__':
 ```
 
 # Todo
-- Headers
 - Namespaces
-- Cookies
 - Middleware
 - Query string
