@@ -1,19 +1,14 @@
 import bisect
-import logging
-
 import http
-import traceback
+import logging
+import ujson
 from collections import defaultdict, namedtuple
 
-import ujson
-from .helper import lazy
+from .constants import _CONTENT_ENC, _COLON, _WILDCARD, _ENC, _SLASH
+from .request import Request
+from .response import Response
 
 logger = logging.getLogger(__name__)
-
-enc = 'ascii'
-wildcard = 0
-slash = bytes('/', enc)[0]
-colon = bytes(':', enc)[0]
 
 
 def normalize_verb(verb: str):
@@ -21,12 +16,6 @@ def normalize_verb(verb: str):
 
 
 class App:
-    GET_METHODS = ('GET',)
-    PUT_METHODS = ('PUT',)
-    POST_METHODS = ('POST',)
-    HEADERS = [('Content-type', 'application/json')]
-    CONTENT_ENC = 'utf-8'
-
     def __init__(self):
         self.verbs = defaultdict(lambda: [])
 
@@ -38,16 +27,16 @@ class App:
                 req = Request(env, path_params)
                 result = fn(req)
                 if isinstance(result, tuple):
-                    code, content = result[0], [bytes(ujson.dumps(result[1]), App.CONTENT_ENC)]
+                    code, content = result[0], [bytes(ujson.dumps(result[1]), _CONTENT_ENC)]
                 else:
-                    code, content = http.HTTPStatus.OK, [bytes(ujson.dumps(result), App.CONTENT_ENC)]
+                    code, content = http.HTTPStatus.OK, [bytes(ujson.dumps(result), _CONTENT_ENC)]
             else:
                 code, content = Response.NOT_FOUND
         except Exception:
             logger.exception('Internal Server Error')
             code, content = Response.INTERNAL_ERR
 
-        start_response(f"{code.value} {code.phrase}", App.HEADERS)
+        start_response(f"{code.value} {code.phrase}", Response.HEADERS)
         return content
 
     def dispatch(self, verb, url):
@@ -56,7 +45,7 @@ class App:
         route_index = 0
         route_char_index = 0
         url_char_index = 0
-        url_bytes = bytes(url, enc)
+        url_bytes = bytes(url, _ENC)
         param_stack = []
         item = None
 
@@ -65,10 +54,10 @@ class App:
                 if url_bytes[url_char_index] == routes[route_index][0][route_char_index]:
                     route_char_index += 1
                     url_char_index += 1
-                elif routes[route_index][0][route_char_index] == wildcard:
+                elif routes[route_index][0][route_char_index] == _WILDCARD:
                     item = (bytearray(), url_char_index, route_char_index)
                     route_char_index += 1
-                    while url_bytes[url_char_index] != slash:
+                    while url_bytes[url_char_index] != _SLASH:
                         item[0].append(url_bytes[url_char_index])
                         url_char_index += 1
 
@@ -97,19 +86,19 @@ class App:
     @staticmethod
     def parse_url(url):
         res = bytearray()
-        b_url = bytes(url, enc)
+        b_url = bytes(url, _ENC)
         params = []
         l = len(b_url)
         i = 0
         while i < l:
-            if b_url[i] == colon and b_url[i - 1] == slash:
+            if b_url[i] == _COLON and b_url[i - 1] == _SLASH:
                 params.append("")
                 i += 1
-                while i < l and b_url[i] != slash:
+                while i < l and b_url[i] != _SLASH:
                     params[-1] += url[i]
                     i += 1
 
-                res.append(wildcard)
+                res.append(_WILDCARD)
             else:
                 res.append(b_url[i])
                 i += 1
@@ -131,53 +120,10 @@ class App:
         return decorator
 
     def get(self, url):
-        return self.route(App.GET_METHODS, url)
+        return self.route(Request.GET_METHODS, url)
 
     def post(self, url):
-        return self.route(App.POST_METHODS, url)
+        return self.route(Request.POST_METHODS, url)
 
     def put(self, url):
-        return self.route(App.PUT_METHODS, url)
-
-
-class Response:
-    NOT_FOUND = http.HTTPStatus.NOT_FOUND, [bytes(http.HTTPStatus.NOT_FOUND.description, App.CONTENT_ENC)]
-    INTERNAL_ERR = http.HTTPStatus.INTERNAL_SERVER_ERROR, [
-        bytes(http.HTTPStatus.INTERNAL_SERVER_ERROR.description, App.CONTENT_ENC)]
-
-
-class Request:
-    JSON_TYPE_LEN = len('application/json')
-
-    def __init__(self, env, path_params):
-        self.env = env
-        self.path_param_type, self.path_param_vals = path_params
-
-    @lazy
-    def body(self):
-        assert self.env['CONTENT_TYPE'][0:Request.JSON_TYPE_LEN] == 'application/json'
-
-        try:
-            len = int(self.env['CONTENT_LENGTH'])
-        except ValueError:
-            raise ValueError('Could not parse CONTENT_LENGTH {} into int'.format(self.env['CONTENT_LENGTH']))
-
-        try:
-            return ujson.loads(self.env['wsgi.input'].read(len))  # TODO: Buffer?
-        except ValueError:
-            raise ValueError('Malformed json body')
-
-    @lazy
-    def has_valid_body(self):
-        try:
-            nop = self.body
-            return True
-        except ValueError:
-            return False
-        except AssertionError:
-            return False
-
-    @lazy
-    def param(self):
-        # TODO: Parse ints?
-        return self.path_param_type(*map(lambda n: n[0].decode(App.CONTENT_ENC), self.path_param_vals))
+        return self.route(Request.PUT_METHODS, url)

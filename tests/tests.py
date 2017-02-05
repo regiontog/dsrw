@@ -2,7 +2,8 @@ import random
 import string
 import unittest
 
-from dsrw.app import App, enc
+from dsrw.app import App
+from dsrw.constants import _ENC
 
 
 def nop():
@@ -40,7 +41,7 @@ class BasicTests(unittest.TestCase):
         for _ in range(iters):
             i = random.randint(0, num - 1)
             url = app.verbs['GET'][i][0]
-            url = url.decode(enc)
+            url = url.decode(_ENC)
             handler, params = app.dispatch('GET', url)
             self.assertIsNotNone(handler)
             self.assertTrue(handler(url))
