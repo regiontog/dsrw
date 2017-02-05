@@ -1,6 +1,10 @@
 # dsrw
 Dead simple restful wsgi applications
 
+# Installation
+
+```pip install dsrw```
+
 # Usage
 
 ```python
