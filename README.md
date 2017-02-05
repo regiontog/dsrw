@@ -16,7 +16,7 @@ app = App()
 
 @app.get('/api/hello')
 def hello(req: Request):
-    return {'msg'="Hello world!"}
+    return {'msg': "Hello world!"}
 
 
 @app.get('/api/hello/:name')
