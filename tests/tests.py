@@ -70,7 +70,7 @@ class BasicTests(unittest.TestCase):
         app = App()
 
         app.get('/test')(test_eq('/test'))
-        app.get('/test/:name')(lambda it: it != '/test/:name')
+        app.get('/test/:name')(lambda it: it != '/test')
 
         urls = ('/test', '/test/alan')
         for url in urls:
