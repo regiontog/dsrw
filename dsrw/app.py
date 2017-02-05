@@ -20,12 +20,6 @@ def normalize_verb(verb: str):
     return verb.upper()
 
 
-class Response:
-    NOT_FOUND = http.HTTPStatus.NOT_FOUND, [bytes(http.HTTPStatus.NOT_FOUND.description, CONTENT_ENC)]
-    INTERNAL_ERR = http.HTTPStatus.INTERNAL_SERVER_ERROR, [
-        bytes(http.HTTPStatus.INTERNAL_SERVER_ERROR.description, CONTENT_ENC)]
-
-
 class App:
     GET_METHODS = ('GET',)
     PUT_METHODS = ('PUT',)
@@ -71,10 +65,10 @@ class App:
                     route_char_index += 1
                     url_char_index += 1
                 elif routes[route_index][0][route_char_index] == wildcard:
-                    item = (url_char_index, bytearray())
+                    item = (bytearray(), url_char_index, route_char_index)
                     route_char_index += 1
                     while url_bytes[url_char_index] != slash:
-                        item[1].append(url_bytes[url_char_index])
+                        item[0].append(url_bytes[url_char_index])
                         url_char_index += 1
 
                     param_stack.append(item)
@@ -82,9 +76,7 @@ class App:
                 elif url_bytes[url_char_index] > routes[route_index][0][route_char_index]:
                     route_index += 1
                     if len(param_stack) > 0:
-                        pos, _ = param_stack.pop()
-                        route_char_index = pos
-                        url_char_index = pos
+                        _, url_char_index, route_char_index = param_stack.pop()
                 else:
                     return None, "Smaller than prev"
             except IndexError:
@@ -98,9 +90,7 @@ class App:
                 else:
                     route_index += 1
                     if len(param_stack) > 0:
-                        pos, _ = param_stack.pop()
-                        route_char_index = pos
-                        url_char_index = pos
+                        _, url_char_index, route_char_index = param_stack.pop()
 
     @staticmethod
     def parse_url(url):
@@ -148,6 +138,12 @@ class App:
         return self.route(App.PUT_METHODS, url)
 
 
+class Response:
+    NOT_FOUND = http.HTTPStatus.NOT_FOUND, [bytes(http.HTTPStatus.NOT_FOUND.description, App.CONTENT_ENC)]
+    INTERNAL_ERR = http.HTTPStatus.INTERNAL_SERVER_ERROR, [
+        bytes(http.HTTPStatus.INTERNAL_SERVER_ERROR.description, App.CONTENT_ENC)]
+
+
 class Request:
     JSON_TYPE_LEN = len('application/json')
 
@@ -181,4 +177,5 @@ class Request:
 
     @lazy
     def param(self):
-        return self.path_param_type(*map(lambda n: n[1].decode(App.CONTENT_ENC), self.path_param_vals))
+        # TODO: Parse ints?
+        return self.path_param_type(*map(lambda n: n[0].decode(App.CONTENT_ENC), self.path_param_vals))
