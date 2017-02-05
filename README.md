@@ -16,12 +16,13 @@ app = App()
 
 @app.get('/api/hello')
 def hello(req: Request):
-    return "Hello world!"
+    return {'msg'="Hello world!"}
 
 
 @app.get('/api/hello/:name')
 def other(req: Request):
-    return f"Hello {req.param.name}!"
+    return {'msg': 'Hello',
+            'name': req.param.name"}
 
 
 @app.get('/api/echo')
@@ -29,7 +30,7 @@ def echo(req: Request):
     if req.has_valid_body:
         return req.body
     else:
-        return "No body available"
+        return ["No body available"]
 
 
 if __name__ == '__main__':
