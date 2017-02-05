@@ -22,7 +22,7 @@ def hello(req: Request):
 @app.get('/api/hello/:name')
 def other(req: Request):
     return {'msg': 'Hello',
-            'name': req.param.name"}
+            'name': req.param.name}
 
 
 @app.get('/api/echo')
