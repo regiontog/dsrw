@@ -22,17 +22,18 @@ class App:
             if fn is not None:
                 req = Request(env, path_params)
                 result = fn(req)
+                headers = req.response.headers
                 if isinstance(result, tuple):
                     code, content = result[0], [bytes(ujson.dumps(result[1]), _CONTENT_ENC)]
                 else:
                     code, content = http.HTTPStatus.OK, [bytes(ujson.dumps(result), _CONTENT_ENC)]
             else:
-                code, content = Response.NOT_FOUND
+                code, content, headers = Response.NOT_FOUND
         except Exception:
             logger.exception('Internal Server Error')
-            code, content = Response.INTERNAL_ERR
+            code, content, headers = Response.INTERNAL_ERR
 
-        start_response(f"{code.value} {code.phrase}", Response.HEADERS)
+        start_response(f"{code.value} {code.phrase}", headers)
         return content
 
     def dispatch(self, verb, url):

@@ -2,6 +2,7 @@ import ujson
 
 from .constants import _CONTENT_ENC
 from .helper import lazy
+from .response import Response
 
 
 class Request:
@@ -12,7 +13,8 @@ class Request:
 
     def __init__(self, env, path_params):
         self.env = env
-        self.path_param_type, self.path_param_vals = path_params
+        self.response = Response()
+        self._path_param_type, self._path_param_vals = path_params
 
     @lazy
     def body(self):
@@ -41,4 +43,4 @@ class Request:
     @lazy
     def param(self):
         # TODO: Parse ints?
-        return self.path_param_type(*map(lambda n: n[0].decode(_CONTENT_ENC), self.path_param_vals))
+        return self._path_param_type(*map(lambda n: n[0].decode(_CONTENT_ENC), self._path_param_vals))
