@@ -78,12 +78,12 @@ class App:
                     if len(param_stack) > 0:
                         _, url_char_index, route_char_index = param_stack.pop()
                 else:
-                    return None, "Smaller than prev"
+                    return None, "Smaller than current (but we've already looked through all smaller than current)"
             except IndexError:
                 if item is not None:
                     param_stack.append(item)
                 if route_index >= len(routes):
-                    return None, "IndexError"
+                    return None, "End of routes"
 
                 if len(routes[route_index][0]) == route_char_index:
                     return routes[route_index][1], (routes[route_index][2], param_stack)
