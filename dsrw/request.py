@@ -1,8 +1,11 @@
+import logging
 import ujson
 
 from .constants import _CONTENT_ENC
 from .helper import lazy
 from .response import Response
+
+logger = logging.getLogger(__name__)
 
 
 class Request:
@@ -44,3 +47,23 @@ class Request:
     def param(self):
         # TODO: Parse ints?
         return self._path_param_type(*map(lambda n: n[0].decode(_CONTENT_ENC), self._path_param_vals))
+
+    @lazy
+    def cookies(self):
+        cookies = self.env['HTTP_COOKIE'].split('; ')
+        struct_d = {}
+
+        for cookie in cookies:
+            parts = cookie.split('=')
+            struct_d[parts[0]] = parts[1]
+
+        return Cookies(**struct_d)
+
+
+class Cookies:
+    def __init__(self, **entries):
+        self.__dict__.update(entries)
+
+    def __getattr__(self, name):
+        logger.warning(f'Access of undefined cookie: {name}')
+        return None
