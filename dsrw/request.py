@@ -1,6 +1,8 @@
 import logging
 import ujson
 
+from querystring_parser import parser
+
 from .constants import _CONTENT_ENC
 from .helper import lazy
 from .response import Response
@@ -51,14 +53,29 @@ class Request:
     @lazy
     def cookies(self):
         cookies = self.env['HTTP_COOKIE'].split('; ')
-        struct_d = {}
+        cookies = map(lambda cookie: cookie.split('='), cookies)
 
-        for cookie in cookies:
-            parts = cookie.split('=')
-            struct_d[parts[0]] = parts[1]
+        return Cookies(**{cookie[0]: cookie[1] for cookie in cookies})
 
-        return Cookies(**struct_d)
+    @lazy
+    def query(self):
+        return QueryParam(parser.parse(self.env['QUERY_STRING']))
 
+
+class QueryParam:
+    def __init__(self, entries):
+        self.__dict__.update({key: self.recursive_parse(entries[key]) for key in entries})
+
+    def __getattr__(self, name):
+        logger.warning(f'Access of undefined query parameter: {name}')
+        return None
+
+    @staticmethod
+    def recursive_parse(value):
+        if isinstance(value, dict):
+            return QueryParam(value)
+        else:
+            return value
 
 class Cookies:
     def __init__(self, **entries):
