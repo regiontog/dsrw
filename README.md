@@ -25,7 +25,7 @@ def other(req: Request):
 
 
 @app.get('/api/echo')
-def other(req: Request):
+def echo(req: Request):
     if req.has_valid_body:
         return req.body
     else:
