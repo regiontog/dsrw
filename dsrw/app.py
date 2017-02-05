@@ -20,16 +20,18 @@ def normalize_verb(verb: str):
     return verb.upper()
 
 
+class Response:
+    NOT_FOUND = http.HTTPStatus.NOT_FOUND, [bytes(http.HTTPStatus.NOT_FOUND.description, CONTENT_ENC)]
+    INTERNAL_ERR = http.HTTPStatus.INTERNAL_SERVER_ERROR, [
+        bytes(http.HTTPStatus.INTERNAL_SERVER_ERROR.description, CONTENT_ENC)]
+
+
 class App:
     GET_METHODS = ('GET',)
     PUT_METHODS = ('PUT',)
     POST_METHODS = ('POST',)
     HEADERS = [('Content-type', 'application/json')]
     CONTENT_ENC = 'utf-8'
-
-    NOT_FOUND = http.HTTPStatus.NOT_FOUND, [bytes(http.HTTPStatus.NOT_FOUND.description, CONTENT_ENC)]
-    INTERNAL_ERR = http.HTTPStatus.INTERNAL_SERVER_ERROR, [
-        bytes(http.HTTPStatus.INTERNAL_SERVER_ERROR.description, CONTENT_ENC)]
 
     def __init__(self):
         self.verbs = defaultdict(lambda: [])
@@ -46,10 +48,10 @@ class App:
                 else:
                     code, content = http.HTTPStatus.OK, [bytes(ujson.dumps(result), App.CONTENT_ENC)]
             else:
-                code, content = App.NOT_FOUND
+                code, content = Response.NOT_FOUND
         except Exception:
             logger.exception('Internal Server Error')
-            code, content = App.INTERNAL_ERR
+            code, content = Response.INTERNAL_ERR
 
         start_response(f"{code.value} {code.phrase}", App.HEADERS)
         return content
@@ -99,7 +101,6 @@ class App:
                         pos, _ = param_stack.pop()
                         route_char_index = pos
                         url_char_index = pos
-
 
     @staticmethod
     def parse_url(url):
