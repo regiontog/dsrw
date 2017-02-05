@@ -7,11 +7,12 @@ from collections import defaultdict, namedtuple
 from .constants import _CONTENT_ENC, _COLON, _WILDCARD, _ENC, _SLASH
 from .request import Request
 from .response import Response
+from .router import Router
 
 logger = logging.getLogger(__name__)
 
 
-class App:
+class App(Router):
     def __init__(self):
         self.verbs = defaultdict(lambda: [])
 
@@ -119,12 +120,3 @@ class App:
             return fn
 
         return decorator
-
-    def get(self, url):
-        return self.route(Request.GET_METHODS, url)
-
-    def post(self, url):
-        return self.route(Request.POST_METHODS, url)
-
-    def put(self, url):
-        return self.route(Request.PUT_METHODS, url)

@@ -42,6 +42,5 @@ if __name__ == '__main__':
 ```
 
 # Todo
-- Namespaces
 - Middleware
 - Query string
