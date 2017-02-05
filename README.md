@@ -46,3 +46,4 @@ if __name__ == '__main__':
 - Namespaces
 - Cookies
 - Middleware
+- Query string
