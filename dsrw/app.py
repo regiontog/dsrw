@@ -11,10 +11,6 @@ from .response import Response
 logger = logging.getLogger(__name__)
 
 
-def normalize_verb(verb: str):
-    return verb.upper()
-
-
 class App:
     def __init__(self):
         self.verbs = defaultdict(lambda: [])
@@ -105,12 +101,16 @@ class App:
 
         return res, params
 
+    @staticmethod
+    def normalize_verb(verb: str):
+        return verb.upper()
+
     def _route(self, verbs, url, handler):
         url, params = self.parse_url(url)
         params_type = namedtuple('PathParams', params)
 
         for verb in verbs:
-            bisect.insort(self.verbs[normalize_verb(verb)], (url, handler, params_type))
+            bisect.insort(self.verbs[self.normalize_verb(verb)], (url, handler, params_type))
 
     def route(self, verbs, url):
         def decorator(fn):
