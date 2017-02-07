@@ -74,7 +74,7 @@ class App(Router):
                 if item is not None:
                     param_stack.append(item)
 
-                if len(routes[route_index][0]) == route_char_index:
+                if len(routes[route_index][0]) == route_char_index and len(url_bytes) == url_char_index:
                     return routes[route_index][1], (routes[route_index][2], param_stack)
                 else:
                     route_index += 1
