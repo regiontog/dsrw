@@ -12,20 +12,20 @@ from wsgiref.simple_server import make_server
 from dsrw import App, Request
 
 app = App()
+api = app.ns('/api')
 
-
-@app.get('/api/hello')
+@app.get('/hello')
 def hello(req: Request):
     return {'msg': "Hello world!"}
 
 
-@app.get('/api/hello/:name')
+@app.get('/hello/:name')
 def other(req: Request):
     return {'msg': 'Hello',
             'name': req.param.name}
 
 
-@app.get('/api/echo')
+@api.get('/echo')
 def echo(req: Request):
     if req.has_valid_body:
         return req.body
