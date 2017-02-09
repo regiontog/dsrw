@@ -44,8 +44,8 @@ class App(Router):
         route_char_index = 0
         url_char_index = 0
         url_bytes = bytes(url, _ENC)
+        url_bytes_len = len(url_bytes)
         param_stack = []
-        item = None
 
         while True:
             try:
@@ -54,13 +54,12 @@ class App(Router):
                     url_char_index += 1
                 elif routes[route_index][0][route_char_index] == _WILDCARD:
                     item = (bytearray(), url_char_index, route_char_index)
+                    param_stack.append(item)
                     route_char_index += 1
                     while url_bytes[url_char_index] != _SLASH:
                         item[0].append(url_bytes[url_char_index])
                         url_char_index += 1
 
-                    param_stack.append(item)
-                    item = None
                 elif url_bytes[url_char_index] > routes[route_index][0][route_char_index]:
                     route_index += 1
                     if len(param_stack) > 0:
@@ -71,10 +70,7 @@ class App(Router):
                 if route_index >= routes_len:
                     return None, "End of routes"
 
-                if item is not None:
-                    param_stack.append(item)
-
-                if len(routes[route_index][0]) == route_char_index and len(url_bytes) == url_char_index:
+                if url_bytes_len == url_char_index and len(routes[route_index][0]) == route_char_index:
                     return routes[route_index][1], (routes[route_index][2], param_stack)
                 else:
                     route_index += 1
