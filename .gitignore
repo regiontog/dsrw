@@ -44,3 +44,4 @@ api.py
 build/**
 dist/**
 dsrw.egg-info/**
+.vscode/**

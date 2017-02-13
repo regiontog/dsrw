@@ -11,7 +11,17 @@ def nop():
 
 
 def test_eq(url):
-    return lambda x: x == url
+    def fn(x, d):
+        d['suc'] = x == url
+
+    return fn
+
+
+def test_not_eq(url):
+    def fn(x, d):
+        d['suc'] = x != url
+
+    return fn
 
 
 def random_uri():
@@ -44,7 +54,9 @@ class BasicTests(unittest.TestCase):
             url = url.decode(_ENC)
             handler, params = app.dispatch('GET', url)
             self.assertIsNotNone(handler)
-            self.assertTrue(handler(url))
+            res = dict(suc=False)
+            handler(url, res)
+            self.assertTrue(res['suc'])
 
     def test_wildcard(self):
         app = App()
@@ -58,7 +70,7 @@ class BasicTests(unittest.TestCase):
             handler, params = app.dispatch('GET', url)
             self.assertIsNotNone(handler)
 
-    def url_parse_test(self):
+    def test_url_parse(self):
         url, params = App.parse_url('/:name/test/:id/hello')
         self.assertEqual(url, b'/\0/test/\0/hello')
         self.assertEqual(params, ['name', 'id'])
@@ -67,19 +79,20 @@ class BasicTests(unittest.TestCase):
         self.assertEqual(url, b'/mime/\0')
         self.assertEqual(params, ['param'])
 
-    def url_end_param_test(self):
+    def test_url_end_param(self):
         app = App()
-
         app.get('/test')(test_eq('/test'))
-        app.get('/test/:name')(lambda it: it != '/test')
+        app.get('/test/:name')(test_not_eq('/test'))
 
         urls = ('/test', '/test/alan')
         for url in urls:
             handler, params = app.dispatch('GET', url)
             self.assertIsNotNone(handler)
-            self.assertTrue(handler(url))
+            res = {'suc': False}
+            handler(url, res)
+            self.assertTrue(res['suc'])
 
-    def simple_test(self):
+    def test_simple(self):
         app = App()
 
         app.get('/api/test')(test_eq('/api/test'))

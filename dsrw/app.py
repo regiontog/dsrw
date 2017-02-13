@@ -14,6 +14,7 @@ logger = logging.getLogger(__name__)
 
 class App(Router):
     def __init__(self):
+        super().__init__()
         self.verbs = defaultdict(lambda: [])
 
     def __call__(self, env, start_response):
@@ -103,16 +104,12 @@ class App(Router):
     def normalize_verb(verb: str):
         return verb.upper()
 
-    def _route(self, verbs, url, handler):
+    def _add_handler(self, verbs, url, handler):
         url, params = self.parse_url(url)
         params_type = namedtuple('PathParams', params)
 
         for verb in verbs:
             bisect.insort(self.verbs[self.normalize_verb(verb)], (url, handler, params_type))
 
-    def route(self, verbs, url):
-        def decorator(fn):
-            self._route(verbs, url, fn)
-            return fn
-
-        return decorator
+    def get_middleware(self):
+        return self.middleware
